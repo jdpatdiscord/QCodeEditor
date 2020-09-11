@@ -94,6 +94,7 @@ void QCodeEditor::updateStyle()
         m_highlighter->rehighlight();
     }
 
+#ifndef QT_NO_STYLE_STYLESHEET
     if (m_syntaxStyle)
     {
         QString backgroundColor = m_syntaxStyle->getFormat("Text").background().color().name();
@@ -103,6 +104,7 @@ void QCodeEditor::updateStyle()
         setStyleSheet(QString("QTextEdit { background-color: %1; selection-background-color: %2; color: %3; }")
                           .arg(backgroundColor, selectionBackground, textColor));
     }
+#endif
 
     updateExtraSelection1();
     updateExtraSelection2();
