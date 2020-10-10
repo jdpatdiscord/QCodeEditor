@@ -148,6 +148,11 @@ class QCodeEditor : public QTextEdit
      */
     void fontChanged(const QFont &newFont);
 
+    /**
+     * @brief Signal, like QLineEdit::editingFinished
+     */
+    void editingFinished();
+
   public Q_SLOTS:
 
     /**
@@ -274,6 +279,11 @@ class QCodeEditor : public QTextEdit
     void focusInEvent(QFocusEvent *e) override;
 
     /**
+     * @brief Reimplemented in order to support editingFinished signal
+     */
+    void focusOutEvent(QFocusEvent *e) override;
+
+    /**
      * @brief Method for tooltip generation
      */
     bool event(QEvent *e) override;
@@ -383,6 +393,7 @@ class QCodeEditor : public QTextEdit
     bool m_autoIndentation;
     bool m_replaceTab;
     bool m_extraBottomMargin;
+    bool m_textChanged;
     QString m_tabReplace;
 
     QList<QTextEdit::ExtraSelection> extra1, extra2, extra_squiggles;
