@@ -81,9 +81,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find includes in corresponding build directories
-find_package(Qt5Core    CONFIG REQUIRED)
-find_package(Qt5Widgets CONFIG REQUIRED)
-find_package(Qt5Gui     CONFIG REQUIRED)
+if(NOT QT_VERSION)
+  set(QT_VERSION Qt5)
+endif()
+find_package(${QT_VERSION}Core    CONFIG REQUIRED)
+find_package(${QT_VERSION}Widgets CONFIG REQUIRED)
+find_package(${QT_VERSION}Gui     CONFIG REQUIRED)
 
 add_library(QCodeEditor STATIC
     ${RESOURCES_FILE}
