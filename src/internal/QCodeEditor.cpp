@@ -652,8 +652,7 @@ void QCodeEditor::keyPressEvent(QKeyEvent *e)
             QKeyEvent pureEnter(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier);
             if (e->modifiers() == Qt::ControlModifier)
             {
-                moveCursor(QTextCursor::EndOfBlock);
-                keyPressEvent(&pureEnter);
+                livecodeTrigger();
                 return;
             }
             else if (e->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier))

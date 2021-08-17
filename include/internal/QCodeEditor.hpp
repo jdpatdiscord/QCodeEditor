@@ -153,6 +153,11 @@ class QCodeEditor : public QTextEdit
      */
     void editingFinished();
 
+    /**
+     * @brief CTRL+Enter
+     */
+    void livecodeTrigger();
+
   public Q_SLOTS:
 
     /**
