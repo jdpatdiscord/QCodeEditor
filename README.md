@@ -1,7 +1,5 @@
 # Qt Code Editor Widget
 
-[![GitHub Workflow Status](https://github.com/cpeditor/QCodeEditor/workflows/CI:%20Build%20Test/badge.svg?event=push)](https://github.com/cpeditor/QCodeEditor/actions?query=event%3Apush)
-
 It's a widget for editing/viewing code.
 
 This project uses a resource named `qcodeeditor_resources.qrc`. The main application
@@ -10,7 +8,7 @@ must not use a resource file with the same name.
 (It's not a project from a Qt example.)
 
 ## Requirements
-0. C++11 featured compiler.
+0. C++17 featured compiler.
 0. Qt 5.
 
 ## Abilities
@@ -22,9 +20,9 @@ must not use a resource file with the same name.
 1. GLSL highlight rules.
 1. C++ highlight rules.
 1. XML highlight rules.
-1. JSON highligh rules.
-1. Java highligh rules.
-1. JavaScript highligh rules.
+1. JSON highlight rules.
+1. Java highlight rules.
+1. JavaScript highlight rules.
 1. Frame selection.
 1. Qt Creator styles.
 
