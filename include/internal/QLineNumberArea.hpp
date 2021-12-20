@@ -43,9 +43,17 @@ class QLineNumberArea : public QWidget
      */
     QSyntaxStyle *syntaxStyle() const;
 
-    void lint(QCodeEditor::SeverityLevel level, int from, int to);
+    /**
+     * @brief Add a marker to the line number area, indicating the severity of
+     *        diagnostics in a line. If there is already a marker at the same line,
+     *        the higher severity will take priority.
+     * 
+     * @param startLine 0-indexed.
+     * @param endLine 0-indexed.
+     */
+    void addDiagnosticMarker(QCodeEditor::DiagnosticSeverity severity, int startLine, int endLine);
 
-    void clearLint();
+    void clearDiagnosticMarkers();
 
   protected:
     void paintEvent(QPaintEvent *event) override;
@@ -55,5 +63,5 @@ class QLineNumberArea : public QWidget
 
     QCodeEditor *m_codeEditParent;
 
-    QMap<int, QCodeEditor::SeverityLevel> m_squiggles;
+    QMap<int, QCodeEditor::DiagnosticSeverity> m_diagnosticMarkers;
 };

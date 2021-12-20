@@ -1,7 +1,10 @@
 #pragma once
 
 // Qt
+#include <QList>
+#include <QString>
 #include <QTextEdit> // Required for inheritance
+#include <QVector>
 
 class QCompleter;
 class QLineNumberArea;
@@ -18,16 +21,18 @@ class QCodeEditor : public QTextEdit
 
   public:
     /**
-     * @brief The SeverityLevel enum
+     * @brief The DiagnosticSeverity enum
      * @note the order should be: the bigger the more important
      */
-    enum class SeverityLevel
+    enum class DiagnosticSeverity
     {
         Hint,
         Information,
         Warning,
         Error
     };
+
+    typedef int Position;
 
     struct Parenthesis
     {
@@ -129,18 +134,18 @@ class QCodeEditor : public QTextEdit
     QCompleter *completer() const;
 
     /**
-     * @brief squiggle Puts a underline squiggle under text ranges in Editor
-     * @param level defines the color of the underline depending upon the severity
-     * @param tooltipMessage The tooltip hover message to show when over selection.
-     * @note QPair<int, int>: first -> Line number in 1-based indexing
-     *                        second -> Character number in 0-based indexing
+     * @brief addDiagnostic add a diagnostic to the editor.
+     *        The diagnostics will be shown as underlines in the editor.
+     * @param severity The severity level of the diagnostic.
+     * @param start Start position of the underline. inclusive.
+     * @param end End position of the underline. exclusive.
+     * @param message The error message to show on hover.
+     * @param code Optional. The error code. E.g. "E3001".
      */
-    void squiggle(SeverityLevel level, QPair<int, int>, QPair<int, int>, const QString &tooltipMessage);
+    void addDiagnostic(DiagnosticSeverity severity, Position start, Position end, const QString &message,
+                       const QString &code = "");
 
-    /**
-     * @brief clearSquiggle, Clears complete squiggle from editor
-     */
-    void clearSquiggle();
+    void clearDiagnostics();
 
   Q_SIGNALS:
     /**
@@ -373,21 +378,25 @@ class QCodeEditor : public QTextEdit
      */
     void addInEachLineOfSelection(const QRegularExpression &regex, const QString &str);
 
-    /**
-     * @brief The SquiggleInformation struct, Line number will be index of vector+1;
-     */
-    struct SquiggleInformation
+    struct Diagnostic
     {
-        SquiggleInformation() = default;
+        Diagnostic() = default;
 
-        SquiggleInformation(QPair<int, int> start, QPair<int, int> stop, const QString &text)
-            : m_startPos(start), m_stopPos(stop), m_tooltipText(text)
+        /**
+         * @param start inclusive
+         * @param end exclusive
+         * @param code optional
+         */
+        Diagnostic(DiagnosticSeverity severity, Position start, Position end, const QString &msg,
+                   const QString &code = "")
+            : severity(severity), start(start), end(end), message(msg)
         {
         }
 
-        QPair<int, int> m_startPos;
-        QPair<int, int> m_stopPos;
-        QString m_tooltipText;
+        DiagnosticSeverity severity;
+        Position start, end;
+        QString message;
+        QString message;
     };
 
     QStyleSyntaxHighlighter *m_highlighter;
@@ -401,9 +410,9 @@ class QCodeEditor : public QTextEdit
     bool m_textChanged;
     QString m_tabReplace;
 
-    QList<QTextEdit::ExtraSelection> extra1, extra2, extra_squiggles;
+    QList<QTextEdit::ExtraSelection> extra1, extra2;
 
-    QVector<SquiggleInformation> m_squiggler;
+    QVector<Diagnostic> m_diagnostics;
 
     QVector<Parenthesis> m_parentheses;
 };

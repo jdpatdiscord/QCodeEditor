@@ -12,7 +12,7 @@
 #include <QTextEdit>
 
 QLineNumberArea::QLineNumberArea(QCodeEditor *parent)
-    : QWidget(parent), m_syntaxStyle(nullptr), m_codeEditParent(parent), m_squiggles()
+    : QWidget(parent), m_syntaxStyle(nullptr), m_codeEditParent(parent)
 {
 }
 
@@ -45,18 +45,26 @@ QSyntaxStyle *QLineNumberArea::syntaxStyle() const
     return m_syntaxStyle;
 }
 
-void QLineNumberArea::lint(QCodeEditor::SeverityLevel level, int from, int to)
+void QLineNumberArea::addMarker(QCodeEditor::DiagnosticSeverity severity, int startLine, int endLine)
 {
-    for (int i = from - 1; i < to; ++i)
+    for (int i = startLine; i < endLine; ++i)
     {
-        m_squiggles[i] = qMax(m_squiggles[i], level);
+        auto j = m_diagnosticMarkers.find(i);
+        if (j == m_diagnosticMarkers.end())
+        {
+            m_diagnosticMarkers.insert(i, severity);
+        }
+        else
+        {
+            *j = qMax(*j, severity);
+        }
     }
     update();
 }
 
-void QLineNumberArea::clearLint()
+void QLineNumberArea::clearMarkers()
 {
-    m_squiggles.clear();
+    m_diagnosticMarkers.clear();
     update();
 }
 
@@ -87,21 +95,21 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
         {
             QString number = QString::number(blockNumber + 1);
 
-            if (m_squiggles.contains(blockNumber))
+            if (m_diagnosticMarkers.contains(blockNumber))
             {
                 QColor squiggleColor;
-                switch (m_squiggles[blockNumber])
+                switch (m_diagnosticMarkers[blockNumber])
                 {
-                case QCodeEditor::SeverityLevel::Error:
+                case QCodeEditor::DiagnosticSeverity::Error:
                     squiggleColor = m_syntaxStyle->getFormat("Error").underlineColor();
                     break;
-                case QCodeEditor::SeverityLevel::Warning:
+                case QCodeEditor::DiagnosticSeverity::Warning:
                     squiggleColor = m_syntaxStyle->getFormat("Warning").underlineColor();
                     break;
-                case QCodeEditor::SeverityLevel::Information:
+                case QCodeEditor::DiagnosticSeverity::Information:
                     squiggleColor = m_syntaxStyle->getFormat("Warning").underlineColor();
                     break;
-                case QCodeEditor::SeverityLevel::Hint:
+                case QCodeEditor::DiagnosticSeverity::Hint:
                     squiggleColor = m_syntaxStyle->getFormat("Text").foreground().color();
                     break;
                 default:

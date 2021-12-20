@@ -26,8 +26,8 @@
 
 QCodeEditor::QCodeEditor(QWidget *widget)
     : QTextEdit(widget), m_highlighter(nullptr), m_syntaxStyle(nullptr), m_lineNumberArea(new QLineNumberArea(this)),
-      m_completer(nullptr), m_autoIndentation(true), m_replaceTab(true), m_extraBottomMargin(true), m_textChanged(false),
-      m_tabReplace(QString(4, ' ')), extra1(), extra2(), extra_squiggles(), m_squiggler(),
+      m_completer(nullptr), m_autoIndentation(true), m_replaceTab(true), m_extraBottomMargin(true),
+      m_textChanged(false), m_tabReplace(4, ' '),
       m_parentheses({{'(', ')'}, {'{', '}'}, {'[', ']'}, {'\"', '\"'}, {'\'', '\''}})
 {
     initFont();
@@ -37,8 +37,8 @@ QCodeEditor::QCodeEditor(QWidget *widget)
     setSyntaxStyle(QSyntaxStyle::defaultStyle());
 
     connect(this, &QTextEdit::textChanged, this, [this] {
-      if(hasFocus())
-        m_textChanged = true;
+        if (hasFocus())
+            m_textChanged = true;
     });
 }
 
@@ -206,7 +206,7 @@ void QCodeEditor::updateExtraSelection1()
     highlightCurrentLine();
     highlightParenthesis();
 
-    setExtraSelections(extra1 + extra2 + extra_squiggles);
+    setExtraSelections(extra1 + extra2);
 }
 
 void QCodeEditor::updateExtraSelection2()
@@ -215,7 +215,7 @@ void QCodeEditor::updateExtraSelection2()
 
     highlightOccurrences();
 
-    setExtraSelections(extra1 + extra2 + extra_squiggles);
+    setExtraSelections(extra1 + extra2);
 }
 
 void QCodeEditor::indent()
@@ -939,15 +939,15 @@ void QCodeEditor::focusInEvent(QFocusEvent *e)
     QTextEdit::focusInEvent(e);
 }
 
-void QCodeEditor::focusOutEvent(QFocusEvent* e)
+void QCodeEditor::focusOutEvent(QFocusEvent *e)
 {
-  QTextEdit::focusOutEvent(e);
+    QTextEdit::focusOutEvent(e);
 
-  if(m_textChanged)
-  {
-      m_textChanged = false;
-      Q_EMIT editingFinished();
-  }
+    if (m_textChanged)
+    {
+        m_textChanged = false;
+        Q_EMIT editingFinished();
+    }
 }
 
 bool QCodeEditor::event(QEvent *event)
@@ -1007,14 +1007,13 @@ QCompleter *QCodeEditor::completer() const
     return m_completer;
 }
 
-void QCodeEditor::squiggle(SeverityLevel level, QPair<int, int> start, QPair<int, int> stop,
-                           const QString &tooltipMessage)
+void QCodeEditor::addDiagnostic(DiagnosticSeverity severity, Position start, Position end, const QString &message,
+                                const QString &code)
 {
-    if (stop < start)
+    if (end < start)
         return;
 
-    SquiggleInformation info(start, stop, tooltipMessage);
-    m_squiggler.push_back(info);
+    m_diagnostics.push_back(Diagnostic(severity, start, end, message, code));
 
     auto cursor = textCursor();
 
@@ -1032,41 +1031,38 @@ void QCodeEditor::squiggle(SeverityLevel level, QPair<int, int> start, QPair<int
     QTextCharFormat newcharfmt = currentCharFormat();
     newcharfmt.setFontUnderline(true);
 
-    switch (level)
+    switch (severity)
     {
-    case SeverityLevel::Error:
+    case DiagnosticSeverity::Error:
         newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Error").underlineColor());
         newcharfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Error").underlineStyle());
         break;
-    case SeverityLevel::Warning:
+    case DiagnosticSeverity::Warning:
         newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
         newcharfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Warning").underlineStyle());
         break;
-    case SeverityLevel::Information:
+    case DiagnosticSeverity::Information:
         newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
         newcharfmt.setUnderlineStyle(QTextCharFormat::DotLine);
         break;
-    case SeverityLevel::Hint:
+    case DiagnosticSeverity::Hint:
         newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Text").foreground().color());
         newcharfmt.setUnderlineStyle(QTextCharFormat::DotLine);
     }
 
-    extra_squiggles.push_back({cursor, newcharfmt});
+    m_lineNumberArea->addDiagnosticMarker(severity, start.first, stop.first);
 
-    m_lineNumberArea->lint(level, start.first, stop.first);
-
-    setExtraSelections(extra1 + extra2 + extra_squiggles);
+    setExtraSelections(extra1 + extra2);
 }
 
-void QCodeEditor::clearSquiggle()
+void QCodeEditor::clearDiagnostics()
 {
-    if (m_squiggler.empty())
+    if (m_diagnostics.empty())
         return;
 
-    m_squiggler.clear();
-    extra_squiggles.clear();
+    m_diagnostics.clear();
 
-    m_lineNumberArea->clearLint();
+    m_lineNumberArea->clearDiagnosticMarkers();
 
     setExtraSelections(extra1 + extra2);
 }
