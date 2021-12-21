@@ -2,10 +2,12 @@
 
 // Qt
 #include <QWidget> // Required for inheritance
+#include <QMap>
 
 #include <QCodeEditor>
 
 class QSyntaxStyle;
+class QPaintEvent;
 
 /**
  * @brief Class, that describes line number area widget.
@@ -48,8 +50,8 @@ class QLineNumberArea : public QWidget
      *        diagnostics in a line. If there is already a marker at the same line,
      *        the higher severity will take priority.
      * 
-     * @param startLine 0-indexed.
-     * @param endLine 0-indexed.
+     * @param startLine 0-indexed, inclusive.
+     * @param endLine 0-indexed, exclusive.
      */
     void addDiagnosticMarker(QCodeEditor::DiagnosticSeverity severity, int startLine, int endLine);
 

@@ -2,8 +2,10 @@
 
 // Qt
 #include <QSyntaxHighlighter> // Required for inheritance
+#include <QString>
 
 class QSyntaxStyle;
+class QTextDocument;
 
 /**
  * @brief Class, that descrubes highlighter with

@@ -9,10 +9,12 @@
 #include <QRegularExpression>
 #include <QVector>
 
+class QString;
+class QTextDocument;
 class QSyntaxStyle;
 
 /**
- * @brief Class, that describes Glsl code
+ * @brief Class, that describes Python code
  * highlighter.
  */
 class QPythonHighlighter : public QStyleSyntaxHighlighter

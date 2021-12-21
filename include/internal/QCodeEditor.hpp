@@ -5,12 +5,22 @@
 #include <QString>
 #include <QTextEdit> // Required for inheritance
 #include <QVector>
+#include <QRect>
+#include <QRegularExpression>
 
+class QRegularExpression;
+class QKeyEvent;
+class QFocusEvent;
+class QWheelEvent;
+class QEvent;
+class QResizeEvent;
+class QPaintEvent;
+class QMimeData;
+class QFont;
 class QCompleter;
 class QLineNumberArea;
 class QSyntaxStyle;
 class QStyleSyntaxHighlighter;
-class QFramedTextAttribute;
 
 /**
  * @brief Class, that describes code editor.
@@ -32,7 +42,15 @@ class QCodeEditor : public QTextEdit
         Error
     };
 
-    typedef int Position;
+    struct Span
+    {
+        /** @brief Start position. Inclusive.
+         */
+        int start;
+        /** @brief End position. Exclusive.
+         */
+        int end;
+    };
 
     struct Parenthesis
     {
@@ -137,17 +155,15 @@ class QCodeEditor : public QTextEdit
      * @brief addDiagnostic add a diagnostic to the editor.
      *        The diagnostics will be shown as underlines in the editor.
      * @param severity The severity level of the diagnostic.
-     * @param start Start position of the underline. inclusive.
-     * @param end End position of the underline. exclusive.
+     * @param span Span of the diagnostic.
      * @param message The error message to show on hover.
      * @param code Optional. The error code. E.g. "E3001".
      */
-    void addDiagnostic(DiagnosticSeverity severity, Position start, Position end, const QString &message,
-                       const QString &code = "");
+    void addDiagnostic(DiagnosticSeverity severity, const Span &span, const QString &message, const QString &code = "");
 
     void clearDiagnostics();
 
-  Q_SIGNALS:
+  signals:
     /**
      * @brief Signal, the font is changed by the wheel event.
      */
@@ -163,7 +179,7 @@ class QCodeEditor : public QTextEdit
      */
     void livecodeTrigger();
 
-  public Q_SLOTS:
+  public slots:
 
     /**
      * @brief Slot, that performs insertion of
@@ -190,8 +206,8 @@ class QCodeEditor : public QTextEdit
      * @brief Slot, that will proceed extra selection
      * for current cursor position.
      */
-    void updateExtraSelection1();
-    void updateExtraSelection2();
+    void updateParenthesisAndCurrentLineHighlights();
+    void updateWordOccurrenceHighlights();
 
     /**
      * @brief Slot, that will update editor style.
@@ -298,7 +314,7 @@ class QCodeEditor : public QTextEdit
      */
     bool event(QEvent *e) override;
 
-  private Q_SLOTS:
+  private slots:
     /**
      * @brief Slot, that updates the bottom margin.
      */
@@ -387,16 +403,15 @@ class QCodeEditor : public QTextEdit
          * @param end exclusive
          * @param code optional
          */
-        Diagnostic(DiagnosticSeverity severity, Position start, Position end, const QString &msg,
-                   const QString &code = "")
-            : severity(severity), start(start), end(end), message(msg)
+        Diagnostic(DiagnosticSeverity severity, const Span &span, const QString &message, const QString &code = "")
+            : severity(severity), span(span), message(message), code(code)
         {
         }
 
         DiagnosticSeverity severity;
-        Position start, end;
+        Span span;
         QString message;
-        QString message;
+        QString code;
     };
 
     QStyleSyntaxHighlighter *m_highlighter;
@@ -410,9 +425,12 @@ class QCodeEditor : public QTextEdit
     bool m_textChanged;
     QString m_tabReplace;
 
-    QList<QTextEdit::ExtraSelection> extra1, extra2;
+    QList<QTextEdit::ExtraSelection> m_parenAndCurLineHilits, m_wordOccurHilits;
 
     QVector<Diagnostic> m_diagnostics;
 
     QVector<Parenthesis> m_parentheses;
+
+    QRegularExpression m_lineStartIndentRegex;
+    QRegularExpression m_lineStartCommentRegex;
 };

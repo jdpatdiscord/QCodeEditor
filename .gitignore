@@ -6,3 +6,7 @@ cmake-build-release/
 QCodeEditor.kdev4
 *~
 /.vscode/
+/*.a
+CMakeCache.txt
+CMakeFiles/
+Makefile

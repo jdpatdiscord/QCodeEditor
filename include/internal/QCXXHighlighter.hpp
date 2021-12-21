@@ -9,6 +9,7 @@
 #include <QVector>
 
 class QSyntaxStyle;
+class QString;
 
 /**
  * @brief Class, that describes C++ code

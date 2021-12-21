@@ -1,10 +1,6 @@
 // QCodeEditor
-#include <QCXXHighlighter>
 #include <QCodeEditor>
-#include <QJSHighlighter>
-#include <QJavaHighlighter>
 #include <QLineNumberArea>
-#include <QPythonHighlighter>
 #include <QStyleSyntaxHighlighter>
 #include <QSyntaxStyle>
 
@@ -19,16 +15,21 @@
 #include <QPaintEvent>
 #include <QScrollBar>
 #include <QShortcut>
-#include <QTextBlock>
 #include <QTextCharFormat>
 #include <QTextStream>
 #include <QToolTip>
+
+QRegularExpression buildLineStartIndentRegex(int tabSize)
+{
+    return QRegularExpression("^(\t| {1," + QString::number(tabSize) + "})");
+}
 
 QCodeEditor::QCodeEditor(QWidget *widget)
     : QTextEdit(widget), m_highlighter(nullptr), m_syntaxStyle(nullptr), m_lineNumberArea(new QLineNumberArea(this)),
       m_completer(nullptr), m_autoIndentation(true), m_replaceTab(true), m_extraBottomMargin(true),
       m_textChanged(false), m_tabReplace(4, ' '),
-      m_parentheses({{'(', ')'}, {'{', '}'}, {'[', ']'}, {'\"', '\"'}, {'\'', '\''}})
+      m_parentheses({{'(', ')'}, {'{', '}'}, {'[', ']'}, {'\"', '\"'}, {'\'', '\''}}),
+      m_lineStartIndentRegex(buildLineStartIndentRegex(4))
 {
     initFont();
     performConnections();
@@ -58,8 +59,8 @@ void QCodeEditor::performConnections()
 
     connect(verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int) { m_lineNumberArea->update(); });
 
-    connect(this, &QTextEdit::cursorPositionChanged, this, &QCodeEditor::updateExtraSelection1);
-    connect(this, &QTextEdit::selectionChanged, this, &QCodeEditor::updateExtraSelection2);
+    connect(this, &QTextEdit::cursorPositionChanged, this, &QCodeEditor::updateParenthesisAndCurrentLineHighlights);
+    connect(this, &QTextEdit::selectionChanged, this, &QCodeEditor::updateWordOccurrenceHighlights);
 }
 
 void QCodeEditor::setHighlighter(QStyleSyntaxHighlighter *highlighter)
@@ -75,6 +76,13 @@ void QCodeEditor::setHighlighter(QStyleSyntaxHighlighter *highlighter)
     {
         m_highlighter->setSyntaxStyle(m_syntaxStyle);
         m_highlighter->setDocument(document());
+
+        auto comment = m_highlighter->commentLineSequence();
+        if (comment.isEmpty()) {
+            m_lineStartCommentRegex = QRegularExpression("");
+        } else {
+            m_lineStartCommentRegex = QRegularExpression("^\\s*(" + comment + " ?)");
+        }
     }
 }
 
@@ -111,8 +119,8 @@ void QCodeEditor::updateStyle()
     }
 #endif
 
-    updateExtraSelection1();
-    updateExtraSelection2();
+    updateParenthesisAndCurrentLineHighlights();
+    updateWordOccurrenceHighlights();
 }
 
 void QCodeEditor::resizeEvent(QResizeEvent *e)
@@ -199,33 +207,34 @@ void QCodeEditor::updateLineNumberArea(QRect rect)
     }
 }
 
-void QCodeEditor::updateExtraSelection1()
+void QCodeEditor::updateParenthesisAndCurrentLineHighlights()
 {
-    extra1.clear();
+    m_parenAndCurLineHilits.clear();
 
     highlightCurrentLine();
     highlightParenthesis();
 
-    setExtraSelections(extra1 + extra2);
+    setExtraSelections(m_parenAndCurLineHilits + m_wordOccurHilits);
 }
 
-void QCodeEditor::updateExtraSelection2()
+void QCodeEditor::updateWordOccurrenceHighlights()
 {
-    extra2.clear();
+    m_wordOccurHilits.clear();
 
     highlightOccurrences();
 
-    setExtraSelections(extra1 + extra2);
+    setExtraSelections(m_parenAndCurLineHilits + m_wordOccurHilits);
 }
 
 void QCodeEditor::indent()
 {
-    addInEachLineOfSelection(QRegularExpression("^"), m_replaceTab ? m_tabReplace : "\t");
+    static QRegularExpression RE_LINE_START("^");
+    addInEachLineOfSelection(RE_LINE_START, m_replaceTab ? m_tabReplace : "\t");
 }
 
 void QCodeEditor::unindent()
 {
-    removeInEachLineOfSelection(QRegularExpression("^(\t| {1," + QString::number(tabReplaceSize()) + "})"), true);
+    removeInEachLineOfSelection(m_lineStartIndentRegex, true);
 }
 
 void QCodeEditor::swapLineUp()
@@ -369,13 +378,14 @@ void QCodeEditor::toggleComment()
 {
     if (m_highlighter == nullptr)
         return;
-    QString comment = m_highlighter->commentLineSequence();
+    auto comment = m_highlighter->commentLineSequence();
     if (comment.isEmpty())
         return;
 
-    if (!removeInEachLineOfSelection(QRegularExpression("^\\s*(" + comment + " ?)"), false))
+    if (!removeInEachLineOfSelection(m_lineStartCommentRegex, false))
     {
-        addInEachLineOfSelection(QRegularExpression("\\S|^\\s*$"), comment + " ");
+        static QRegularExpression RE_LINE_COMMENT_TARGET("\\S|^\\s*$");
+        addInEachLineOfSelection(RE_LINE_COMMENT_TARGET, comment + " ");
     }
 }
 
@@ -488,13 +498,13 @@ void QCodeEditor::highlightParenthesis()
 
             selection.cursor.movePosition(QTextCursor::MoveOperation::Right, QTextCursor::MoveMode::KeepAnchor, 1);
 
-            extra1.append(selection);
+            m_parenAndCurLineHilits.append(selection);
 
             selection.cursor = textCursor();
             selection.cursor.clearSelection();
             selection.cursor.movePosition(directionEnum, QTextCursor::MoveMode::KeepAnchor, 1);
 
-            extra1.append(selection);
+            m_parenAndCurLineHilits.append(selection);
         }
 
         break;
@@ -513,20 +523,20 @@ void QCodeEditor::highlightCurrentLine()
         selection.cursor = textCursor();
         selection.cursor.clearSelection();
 
-        extra1.append(selection);
+        m_parenAndCurLineHilits.append(selection);
     }
 }
 
 void QCodeEditor::highlightOccurrences()
 {
+    static QRegularExpression RE_WORD(
+        R"((?:[_a-zA-Z][_a-zA-Z0-9]*)|(?<=\b|\s|^)(?i)(?:(?:(?:(?:(?:\d+(?:'\d+)*)?\.(?:\d+(?:'\d+)*)(?:e[+-]?(?:\d+(?:'\d+)*))?)|(?:(?:\d+(?:'\d+)*)\.(?:e[+-]?(?:\d+(?:'\d+)*))?)|(?:(?:\d+(?:'\d+)*)(?:e[+-]?(?:\d+(?:'\d+)*)))|(?:0x(?:[0-9a-f]+(?:'[0-9a-f]+)*)?\.(?:[0-9a-f]+(?:'[0-9a-f]+)*)(?:p[+-]?(?:\d+(?:'\d+)*)))|(?:0x(?:[0-9a-f]+(?:'[0-9a-f]+)*)\.?(?:p[+-]?(?:\d+(?:'\d+)*))))[lf]?)|(?:(?:(?:[1-9]\d*(?:'\d+)*)|(?:0[0-7]*(?:'[0-7]+)*)|(?:0x[0-9a-f]+(?:'[0-9a-f]+)*)|(?:0b[01]+(?:'[01]+)*))(?:u?l{0,2}|l{0,2}u?)))(?=\b|\s|$))");
+
     auto cursor = textCursor();
     if (cursor.hasSelection())
     {
         auto text = cursor.selectedText();
-        if (QRegularExpression(
-                R"((?:[_a-zA-Z][_a-zA-Z0-9]*)|(?<=\b|\s|^)(?i)(?:(?:(?:(?:(?:\d+(?:'\d+)*)?\.(?:\d+(?:'\d+)*)(?:e[+-]?(?:\d+(?:'\d+)*))?)|(?:(?:\d+(?:'\d+)*)\.(?:e[+-]?(?:\d+(?:'\d+)*))?)|(?:(?:\d+(?:'\d+)*)(?:e[+-]?(?:\d+(?:'\d+)*)))|(?:0x(?:[0-9a-f]+(?:'[0-9a-f]+)*)?\.(?:[0-9a-f]+(?:'[0-9a-f]+)*)(?:p[+-]?(?:\d+(?:'\d+)*)))|(?:0x(?:[0-9a-f]+(?:'[0-9a-f]+)*)\.?(?:p[+-]?(?:\d+(?:'\d+)*))))[lf]?)|(?:(?:(?:[1-9]\d*(?:'\d+)*)|(?:0[0-7]*(?:'[0-7]+)*)|(?:0x[0-9a-f]+(?:'[0-9a-f]+)*)|(?:0b[01]+(?:'[01]+)*))(?:u?l{0,2}|l{0,2}u?)))(?=\b|\s|$))")
-                .match(text)
-                .captured() == text)
+        if (RE_WORD.match(text).captured() == text)
         {
             auto doc = document();
             cursor = doc->find(text, 0, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
@@ -537,7 +547,7 @@ void QCodeEditor::highlightOccurrences()
                     QTextEdit::ExtraSelection e;
                     e.cursor = cursor;
                     e.format.setBackground(m_syntaxStyle->getFormat("Selection").background());
-                    extra2.push_back(e);
+                    m_wordOccurHilits.push_back(e);
                 }
                 cursor = doc->find(text, cursor, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
             }
@@ -718,9 +728,10 @@ void QCodeEditor::keyPressEvent(QKeyEvent *e)
 
         // Auto indentation
 
-        QString indentationSpaces = QRegularExpression("^\\s*")
-                                        .match(document()->findBlockByNumber(textCursor().blockNumber()).text())
-                                        .captured();
+        static QRegularExpression RE_LINE_START_WHITESPACE("^\\s*");
+
+        QString indentationSpaces =
+            RE_LINE_START_WHITESPACE.match(document()->findBlockByNumber(textCursor().blockNumber()).text()).captured();
 
         // Have Qt Edior like behaviour, if {|} and enter is pressed indent the two
         // parenthesis
@@ -894,6 +905,7 @@ bool QCodeEditor::tabReplace() const
 void QCodeEditor::setTabReplaceSize(int val)
 {
     m_tabReplace.fill(' ', val);
+    m_lineStartIndentRegex = buildLineStartIndentRegex(val);
 #if QT_VERSION >= 0x050B00
     setTabStopDistance(fontMetrics().horizontalAdvance(QString(val * 1000, ' ')) / 1000.0);
 #elif QT_VERSION == 0x050A00
@@ -954,28 +966,20 @@ bool QCodeEditor::event(QEvent *event)
 {
     if (event->type() == QEvent::ToolTip)
     {
-        auto *helpEvent = dynamic_cast<QHelpEvent *>(event);
+        auto helpEvent = dynamic_cast<QHelpEvent *>(event);
         auto point = helpEvent->pos();
         point.setX(point.x() - m_lineNumberArea->geometry().right());
-        QTextCursor cursor = cursorForPosition(point);
-
-        auto lineNumber = cursor.blockNumber() + 1;
-
-        QTextCursor copyCursor(cursor);
-        copyCursor.movePosition(QTextCursor::StartOfBlock);
-
-        auto blockPositionStart = cursor.positionInBlock() - copyCursor.positionInBlock();
-        QPair<int, int> positionOfTooltip{lineNumber, blockPositionStart};
+        auto pos = cursorForPosition(point).position();
 
         QString text;
-        for (auto const &e : qAsConst(m_squiggler))
+        for (auto const &e : qAsConst(m_diagnostics))
         {
-            if (e.m_startPos <= positionOfTooltip && e.m_stopPos >= positionOfTooltip)
+            if (e.span.start <= pos && pos <= e.span.end)
             {
                 if (text.isEmpty())
-                    text = e.m_tooltipText;
+                    text = e.message;
                 else
-                    text += "; " + e.m_tooltipText;
+                    text += "; " + e.message;
             }
         }
 
@@ -1007,52 +1011,47 @@ QCompleter *QCodeEditor::completer() const
     return m_completer;
 }
 
-void QCodeEditor::addDiagnostic(DiagnosticSeverity severity, Position start, Position end, const QString &message,
+void QCodeEditor::addDiagnostic(DiagnosticSeverity severity, const Span &span, const QString &message,
                                 const QString &code)
 {
-    if (end < start)
+    if (span.end < span.start)
         return;
 
-    m_diagnostics.push_back(Diagnostic(severity, start, end, message, code));
+    m_diagnostics.push_back(Diagnostic(severity, span, message, code));
 
-    auto cursor = textCursor();
+    auto cursor = this->textCursor();
+    cursor.setPosition(span.start);
+    cursor.setPosition(span.end, QTextCursor::KeepAnchor);
 
-    cursor.movePosition(QTextCursor::Start);
-    cursor.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor, start.first - 1);
-    cursor.movePosition(QTextCursor::StartOfBlock);
-    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, start.second);
-
-    if (stop.first > start.first)
-        cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, stop.first - start.first);
-
-    cursor.movePosition(QTextCursor::StartOfBlock, QTextCursor::KeepAnchor);
-    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, stop.second);
-
-    QTextCharFormat newcharfmt = currentCharFormat();
-    newcharfmt.setFontUnderline(true);
+    QTextCharFormat charfmt;
 
     switch (severity)
     {
     case DiagnosticSeverity::Error:
-        newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Error").underlineColor());
-        newcharfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Error").underlineStyle());
+        charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Error").underlineColor());
+        charfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Error").underlineStyle());
         break;
     case DiagnosticSeverity::Warning:
-        newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
-        newcharfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Warning").underlineStyle());
+        charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
+        charfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Warning").underlineStyle());
         break;
     case DiagnosticSeverity::Information:
-        newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
-        newcharfmt.setUnderlineStyle(QTextCharFormat::DotLine);
+        charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
+        charfmt.setUnderlineStyle(QTextCharFormat::DotLine);
         break;
     case DiagnosticSeverity::Hint:
-        newcharfmt.setUnderlineColor(m_syntaxStyle->getFormat("Text").foreground().color());
-        newcharfmt.setUnderlineStyle(QTextCharFormat::DotLine);
+        charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Text").foreground().color());
+        charfmt.setUnderlineStyle(QTextCharFormat::DotLine);
+        break;
     }
 
-    m_lineNumberArea->addDiagnosticMarker(severity, start.first, stop.first);
+    cursor.mergeCharFormat(charfmt);
 
-    setExtraSelections(extra1 + extra2);
+    cursor.setPosition(span.start);
+    auto startLine = cursor.blockNumber();
+    cursor.setPosition(span.end);
+    auto endLine = cursor.blockNumber();
+    m_lineNumberArea->addDiagnosticMarker(severity, startLine, endLine);
 }
 
 void QCodeEditor::clearDiagnostics()
@@ -1060,27 +1059,21 @@ void QCodeEditor::clearDiagnostics()
     if (m_diagnostics.empty())
         return;
 
-    m_diagnostics.clear();
+    QTextCharFormat charfmt;
+    charfmt.setUnderlineStyle(QTextCharFormat::NoUnderline);
+
+    auto cursor = textCursor();
+    cursor.select(QTextCursor::Document);
+    cursor.mergeCharFormat(charfmt);
 
     m_lineNumberArea->clearDiagnosticMarkers();
 
-    setExtraSelections(extra1 + extra2);
+    update();
 }
 
 QChar QCodeEditor::charUnderCursor(int offset) const
 {
-    auto block = textCursor().blockNumber();
-    auto index = textCursor().positionInBlock();
-    auto text = document()->findBlockByNumber(block).text();
-
-    index += offset;
-
-    if (index < 0 || index >= text.size())
-    {
-        return {};
-    }
-
-    return text[index];
+    return document()->characterAt(textCursor().position() + offset);
 }
 
 QString QCodeEditor::wordUnderCursor() const

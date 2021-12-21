@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QObject> // Required for inheritance
 #include <QString>
+#include <QStringList>
 
 class QIODevice;
 

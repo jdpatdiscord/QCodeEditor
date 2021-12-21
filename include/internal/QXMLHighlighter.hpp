@@ -7,6 +7,9 @@
 #include <QRegularExpression>
 #include <QVector>
 
+class QTextDocument;
+class QTextCharFormat;
+
 /**
  * @brief Class, that describes XML code
  * highlighter.

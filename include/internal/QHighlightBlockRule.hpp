@@ -1,12 +1,14 @@
 #pragma once
 
+#include <utility>
+
 // Qt
 #include <QRegularExpression>
 #include <QString>
 
 struct QHighlightBlockRule
 {
-    QHighlightBlockRule() : startPattern(), endPattern(), formatName()
+    QHighlightBlockRule()
     {
     }
 

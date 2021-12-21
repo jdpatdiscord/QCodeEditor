@@ -45,7 +45,7 @@ QSyntaxStyle *QLineNumberArea::syntaxStyle() const
     return m_syntaxStyle;
 }
 
-void QLineNumberArea::addMarker(QCodeEditor::DiagnosticSeverity severity, int startLine, int endLine)
+void QLineNumberArea::addDiagnosticMarker(QCodeEditor::DiagnosticSeverity severity, int startLine, int endLine)
 {
     for (int i = startLine; i < endLine; ++i)
     {
@@ -62,7 +62,7 @@ void QLineNumberArea::addMarker(QCodeEditor::DiagnosticSeverity severity, int st
     update();
 }
 
-void QLineNumberArea::clearMarkers()
+void QLineNumberArea::clearDiagnosticMarkers()
 {
     m_diagnosticMarkers.clear();
     update();
@@ -73,7 +73,7 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
     QPainter painter(this);
 
     // Clearing rect to update
-    painter.fillRect(event->rect(), m_syntaxStyle->getFormat("Text").background().color());
+    painter.fillRect(event->rect(), m_syntaxStyle->getFormat("LineNumber").background().color());
 
     auto blockNumber = m_codeEditParent->getFirstVisibleBlock();
     auto block = m_codeEditParent->document()->findBlockByNumber(blockNumber);
@@ -84,10 +84,18 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
                    .top();
     auto bottom = top + (int)m_codeEditParent->document()->documentLayout()->blockBoundingRect(block).height();
 
-    auto currentLine = m_syntaxStyle->getFormat("CurrentLineNumber").foreground().color();
+    auto currentLineFormat = m_syntaxStyle->getFormat("CurrentLineNumber");
+    auto currentLine = currentLineFormat.foreground().color();
     auto otherLines = m_syntaxStyle->getFormat("LineNumber").foreground().color();
 
-    painter.setFont(m_codeEditParent->font());
+    auto font = m_codeEditParent->font();
+    QFont currentLineFont(font);
+    currentLineFont.setWeight(currentLineFormat.fontWeight());
+    currentLineFont.setItalic(currentLineFormat.fontItalic());
+    painter.setFont(font);
+
+    auto lineWidth = sizeHint().width();
+    auto lineHeight = m_codeEditParent->fontMetrics().height();
 
     while (block.isValid() && top <= event->rect().bottom())
     {
@@ -97,33 +105,38 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
 
             if (m_diagnosticMarkers.contains(blockNumber))
             {
-                QColor squiggleColor;
+                QColor markerColor;
                 switch (m_diagnosticMarkers[blockNumber])
                 {
                 case QCodeEditor::DiagnosticSeverity::Error:
-                    squiggleColor = m_syntaxStyle->getFormat("Error").underlineColor();
+                    markerColor = m_syntaxStyle->getFormat("Error").underlineColor();
                     break;
                 case QCodeEditor::DiagnosticSeverity::Warning:
-                    squiggleColor = m_syntaxStyle->getFormat("Warning").underlineColor();
+                    markerColor = m_syntaxStyle->getFormat("Warning").underlineColor();
                     break;
                 case QCodeEditor::DiagnosticSeverity::Information:
-                    squiggleColor = m_syntaxStyle->getFormat("Warning").underlineColor();
+                    markerColor = m_syntaxStyle->getFormat("Warning").underlineColor();
                     break;
                 case QCodeEditor::DiagnosticSeverity::Hint:
-                    squiggleColor = m_syntaxStyle->getFormat("Text").foreground().color();
+                    markerColor = m_syntaxStyle->getFormat("Text").foreground().color();
                     break;
                 default:
                     Q_UNREACHABLE();
                     break;
                 }
-                painter.fillRect(0, top, 7, m_codeEditParent->fontMetrics().height(), squiggleColor);
+                painter.fillRect(0, top, 7, lineHeight, markerColor);
             }
 
             auto isCurrentLine = m_codeEditParent->textCursor().blockNumber() == blockNumber;
             painter.setPen(isCurrentLine ? currentLine : otherLines);
 
-            painter.drawText(-5, top, sizeHint().width(), m_codeEditParent->fontMetrics().height(), Qt::AlignRight,
-                             number);
+            if (isCurrentLine) {
+                painter.setFont(currentLineFont);
+                painter.drawText(-5, top, lineWidth, lineHeight, Qt::AlignRight, number);
+                painter.setFont(font);
+            } else {
+                painter.drawText(-5, top, lineWidth, lineHeight, Qt::AlignRight, number);
+            }
         }
 
         block = block.next();

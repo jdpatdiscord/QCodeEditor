@@ -8,6 +8,7 @@
 #include <QRegularExpression>
 #include <QVector>
 
+class QString;
 class QSyntaxStyle;
 
 /**

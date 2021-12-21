@@ -8,6 +8,8 @@
 #include <QVector>
 
 class QSyntaxStyle;
+class QTextDocument;
+class QString;
 
 /**
  * @brief Derived to implement highlighting of JavaScript code.

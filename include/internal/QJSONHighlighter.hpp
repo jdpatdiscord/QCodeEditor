@@ -6,6 +6,10 @@
 
 // Qt
 #include <QVector>
+#include <QRegularExpression>
+
+class QString;
+class QTextDocument;
 
 /**
  * @brief Class, that describes JSON code
