@@ -1,12 +1,14 @@
 #pragma once
 
+#include <interval-tree/interval_tree.hpp>
+
 // Qt
 #include <QList>
+#include <QRect>
+#include <QRegularExpression>
 #include <QString>
 #include <QTextEdit> // Required for inheritance
 #include <QVector>
-#include <QRect>
-#include <QRegularExpression>
 
 class QRegularExpression;
 class QKeyEvent;
@@ -414,6 +416,139 @@ class QCodeEditor : public QTextEdit
         QString code;
     };
 
+    struct InternalSpan
+    {
+      public:
+        using value_type = int;
+        using interval_kind = lib_interval_tree::closed;
+
+        constexpr InternalSpan(value_type low, value_type high, int diagIndex = 0)
+            : low_{low}, high_{high}, diagIndex(diagIndex)
+        {
+            assert(low <= high);
+        }
+
+        /**
+         *  Returns if both intervals equal.
+         */
+        friend bool operator==(InternalSpan const &lhs, InternalSpan const &other)
+        {
+            return lhs.low_ == other.low_ && lhs.high_ == other.high_;
+        }
+
+        /**
+         *  Returns if both intervals are different.
+         */
+        friend bool operator!=(InternalSpan const &lhs, InternalSpan const &other)
+        {
+            return lhs.low_ != other.low_ || lhs.high_ != other.high_;
+        }
+
+        /**
+         *  Returns the lower bound of the interval
+         */
+        value_type low() const
+        {
+            return low_;
+        }
+
+        /**
+         *  Returns the upper bound of the interval
+         */
+        value_type high() const
+        {
+            return high_;
+        }
+
+        /**
+         *  Returns whether the intervals overlap.
+         *  For when both intervals are closed.
+         */
+        bool overlaps(value_type l, value_type h) const
+        {
+            return low_ <= h && l <= high_;
+        }
+
+        /**
+         *  Returns whether the intervals overlap, excluding border.
+         *  For when at least one interval is open (l&r).
+         */
+        bool overlaps_exclusive(value_type l, value_type h) const
+        {
+            return low_ < h && l < high_;
+        }
+
+        /**
+         *  Returns whether the intervals overlap
+         */
+        bool overlaps(InternalSpan const &other) const
+        {
+            return overlaps(other.low_, other.high_);
+        }
+
+        /**
+         *  Returns whether the intervals overlap, excluding border.
+         */
+        bool overlaps_exclusive(InternalSpan const &other) const
+        {
+            return overlaps_exclusive(other.low_, other.high_);
+        }
+
+        /**
+         *  Returns whether the given value is in this.
+         */
+        bool within(value_type value) const
+        {
+            return interval_kind::within(low_, high_, value);
+        }
+
+        /**
+         *  Returns whether the given interval is in this.
+         */
+        bool within(InternalSpan const &other) const
+        {
+            return low_ <= other.low_ && high_ >= other.high_;
+        }
+
+        /**
+         *  Calculates the distance between the two intervals.
+         *  Overlapping intervals have 0 distance.
+         */
+        value_type operator-(InternalSpan const &other) const
+        {
+            if (overlaps(other))
+                return 0;
+            if (high_ < other.low_)
+                return other.low_ - high_;
+            else
+                return low_ - other.high_;
+        }
+
+        /**
+         *  Returns the size of the interval.
+         */
+        value_type size() const
+        {
+            return high_ - low_;
+        }
+
+        /**
+         *  Creates a new interval from this and other, that contains both intervals
+         * and whatever is between.
+         */
+        InternalSpan join(InternalSpan const &other) const
+        {
+            return {qMin(low_, other.low_), qMax(high_, other.high_)};
+        }
+
+      private:
+        value_type low_;
+        value_type high_;
+
+      public:
+        int diagIndex;
+    };
+
     QStyleSyntaxHighlighter *m_highlighter;
     QSyntaxStyle *m_syntaxStyle;
     QLineNumberArea *m_lineNumberArea;
@@ -428,6 +563,7 @@ class QCodeEditor : public QTextEdit
     QList<QTextEdit::ExtraSelection> m_parenAndCurLineHilits, m_wordOccurHilits;
 
     QVector<Diagnostic> m_diagnostics;
+    lib_interval_tree::interval_tree<InternalSpan> m_diagSpans;
 
     QVector<Parenthesis> m_parentheses;
 

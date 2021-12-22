@@ -78,9 +78,12 @@ void QCodeEditor::setHighlighter(QStyleSyntaxHighlighter *highlighter)
         m_highlighter->setDocument(document());
 
         auto comment = m_highlighter->commentLineSequence();
-        if (comment.isEmpty()) {
+        if (comment.isEmpty())
+        {
             m_lineStartCommentRegex = QRegularExpression("");
-        } else {
+        }
+        else
+        {
             m_lineStartCommentRegex = QRegularExpression("^\\s*(" + comment + " ?)");
         }
     }
@@ -974,16 +977,16 @@ bool QCodeEditor::event(QEvent *event)
         auto pos = cursorForPosition(point).position();
 
         QString text;
-        for (auto const &e : qAsConst(m_diagnostics))
-        {
-            if (e.span.start <= pos && pos <= e.span.end)
+        m_diagSpans.overlap_find_all({pos, pos}, [&text, this](auto it) {
+            if (text.isEmpty())
             {
-                if (text.isEmpty())
-                    text = e.message;
-                else
-                    text += "; " + e.message;
+                text = m_diagnostics[it->interval().diagIndex].message;
+            } else {
+                text += "; ";
+                text += m_diagnostics[it->interval().diagIndex].message;
             }
-        }
+            return true;
+        });
 
         if (text.isEmpty())
             QToolTip::hideText();
@@ -1019,7 +1022,9 @@ void QCodeEditor::addDiagnostic(DiagnosticSeverity severity, const Span &span, c
     if (span.end < span.start)
         return;
 
+    auto i = m_diagnostics.size();
     m_diagnostics.push_back(Diagnostic(severity, span, message, code));
+    m_diagSpans.insert(InternalSpan(span.start, span.end, i));
 
     auto cursor = this->textCursor();
     cursor.setPosition(span.start);
@@ -1062,6 +1067,7 @@ void QCodeEditor::clearDiagnostics()
         return;
 
     m_diagnostics.clear();
+    m_diagSpans.clear();
 
     QTextCharFormat charfmt;
     charfmt.setUnderlineStyle(QTextCharFormat::NoUnderline);

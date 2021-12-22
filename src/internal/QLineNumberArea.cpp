@@ -125,20 +125,20 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
                     break;
                 }
 
-                // Make the marker less dazzling.
-                markerColor.setAlpha(200);
-
                 painter.fillRect(0, top, 7, lineHeight, markerColor);
             }
 
             auto isCurrentLine = m_codeEditParent->textCursor().blockNumber() == blockNumber;
             painter.setPen(isCurrentLine ? currentLine : otherLines);
 
-            if (isCurrentLine) {
+            if (isCurrentLine)
+            {
                 painter.setFont(currentLineFont);
                 painter.drawText(-5, top, lineWidth, lineHeight, Qt::AlignRight, number);
                 painter.setFont(font);
-            } else {
+            }
+            else
+            {
                 painter.drawText(-5, top, lineWidth, lineHeight, Qt::AlignRight, number);
             }
         }

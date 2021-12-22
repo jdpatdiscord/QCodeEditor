@@ -1,6 +1,6 @@
 // QCodeEditor
 #include <QLanguage>
-#include "QtCompat.hpp"
+#include <internal/QtCompat.hpp>
 
 // Qt
 #include <QIODevice>
