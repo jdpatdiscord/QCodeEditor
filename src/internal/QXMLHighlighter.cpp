@@ -1,6 +1,6 @@
 // QCodeEditor
-#include <QSyntaxStyle>
-#include <QXMLHighlighter>
+#include <internal/QSyntaxStyle.hpp>
+#include <internal/QXMLHighlighter.hpp>
 
 QXMLHighlighter::QXMLHighlighter(QTextDocument *document)
     : QStyleSyntaxHighlighter(document), m_xmlKeywordRegexes(),

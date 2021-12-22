@@ -1,8 +1,8 @@
 // QCodeEditor
-#include <QCodeEditor>
-#include <QLineNumberArea>
-#include <QStyleSyntaxHighlighter>
-#include <QSyntaxStyle>
+#include <internal/QCodeEditor.hpp>
+#include <internal/QLineNumberArea.hpp>
+#include <internal/QStyleSyntaxHighlighter.hpp>
+#include <internal/QSyntaxStyle.hpp>
 
 // Qt
 #include <QAbstractItemView>

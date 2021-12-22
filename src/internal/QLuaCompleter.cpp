@@ -1,6 +1,6 @@
 // QCodeEditor
-#include <QLanguage>
-#include <QLuaCompleter>
+#include <internal/QLanguage.hpp>
+#include <internal/QLuaCompleter.hpp>
 
 // Qt
 #include <QFile>

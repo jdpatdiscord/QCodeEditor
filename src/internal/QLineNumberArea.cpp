@@ -1,7 +1,7 @@
 // QCodeEditor
-#include <QCodeEditor>
-#include <QLineNumberArea>
-#include <QSyntaxStyle>
+#include <internal/QCodeEditor.hpp>
+#include <internal/QLineNumberArea.hpp>
+#include <internal/QSyntaxStyle.hpp>
 
 // Qt
 #include <QAbstractTextDocumentLayout>

@@ -1,7 +1,7 @@
 // QCodeEditor
-#include <QLanguage>
-#include <QPythonHighlighter>
-#include <QSyntaxStyle>
+#include <internal/QLanguage.hpp>
+#include <internal/QPythonHighlighter.hpp>
+#include <internal/QSyntaxStyle.hpp>
 
 // Qt
 #include <QDebug>
@@ -9,9 +9,9 @@
 
 QPythonHighlighter::QPythonHighlighter(QTextDocument *document)
     : QStyleSyntaxHighlighter(document), m_highlightRules(), m_highlightBlockRules(),
-      m_includePattern(QRegularExpression(R"(import \w+)")),
-      m_functionPattern(QRegularExpression(R"(\b([A-Za-z0-9_]+(?:\.))*([A-Za-z0-9_]+)(?=\())")),
-      m_defTypePattern(QRegularExpression(R"(\b([A-Za-z0-9_]+)\s+[A-Za-z]{1}[A-Za-z0-9_]+\s*[;=])"))
+      m_includePattern(R"(import \w+)"),
+      m_functionPattern(R"(\b([A-Za-z0-9_]+(?:\.))*([A-Za-z0-9_]+)(?=\())"),
+      m_defTypePattern(R"(\b([A-Za-z0-9_]+)\s+[A-Za-z]{1}[A-Za-z0-9_]+\s*[;=])")
 {
     Q_INIT_RESOURCE(qcodeeditor_resources);
     QFile fl(":/languages/python.xml");

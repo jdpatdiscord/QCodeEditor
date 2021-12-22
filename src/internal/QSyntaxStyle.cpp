@@ -1,5 +1,5 @@
 // QCodeEditor
-#include <QSyntaxStyle>
+#include <internal/QSyntaxStyle.hpp>
 #include <internal/QtCompat.hpp>
 
 // Qt
@@ -7,8 +7,7 @@
 #include <QFile>
 #include <QXmlStreamReader>
 
-
-QSyntaxStyle::QSyntaxStyle(QObject *parent) : QObject(parent), m_name(), m_data(), m_loaded(false)
+QSyntaxStyle::QSyntaxStyle(QObject *parent) : QObject(parent), m_loaded(false)
 {
 }
 

@@ -1,5 +1,5 @@
 // QCodeEditor
-#include <QStyleSyntaxHighlighter>
+#include <internal/QStyleSyntaxHighlighter.hpp>
 
 QStyleSyntaxHighlighter::QStyleSyntaxHighlighter(QTextDocument *document)
     : QSyntaxHighlighter(document), m_syntaxStyle(nullptr), m_commentLineSequence(), m_startCommentBlockSequence(),

@@ -1,16 +1,16 @@
 // QCodeEditor
-#include <QLanguage>
-#include <QLuaHighlighter>
-#include <QSyntaxStyle>
+#include <internal/QLanguage.hpp>
+#include <internal/QLuaHighlighter.hpp>
+#include <internal/QSyntaxStyle.hpp>
 
 // Qt
 #include <QFile>
 
 QLuaHighlighter::QLuaHighlighter(QTextDocument *document)
     : QStyleSyntaxHighlighter(document), m_highlightRules(), m_highlightBlockRules(),
-      m_requirePattern(QRegularExpression(R"(require\s*([("'][a-zA-Z0-9*._]+['")]))")),
-      m_functionPattern(QRegularExpression(R"(\b([A-Za-z0-9_]+(?:\s+|::))*([A-Za-z0-9_]+)(?=\())")),
-      m_defTypePattern(QRegularExpression(R"(\b([A-Za-z0-9_]+)\s+[A-Za-z]{1}[A-Za-z0-9_]+\s*[=])"))
+      m_requirePattern(R"(require\s*([("'][a-zA-Z0-9*._]+['")]))"),
+      m_functionPattern(R"(\b([A-Za-z0-9_]+(?:\s+|::))*([A-Za-z0-9_]+)(?=\())"),
+      m_defTypePattern(R"(\b([A-Za-z0-9_]+)\s+[A-Za-z]{1}[A-Za-z0-9_]+\s*[=])")
 {
     Q_INIT_RESOURCE(qcodeeditor_resources);
     QFile fl(":/languages/lua.xml");

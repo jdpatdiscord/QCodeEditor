@@ -15,18 +15,14 @@ set(RESOURCES_FILE
 )
 
 set(INCLUDE_FILES
-    include/QHighlightRule
-    include/QHighlightBlockRule
     include/QCodeEditor
     include/QCXXHighlighter
-    include/QLineNumberArea
     include/QStyleSyntaxHighlighter
     include/QSyntaxStyle
     include/QGLSLCompleter
     include/QGLSLHighlighter
     include/QJavaHighlighter
     include/QJSHighlighter
-    include/QLanguage
     include/QXMLHighlighter
     include/QJSONHighlighter
     include/QLuaCompleter

@@ -1,7 +1,7 @@
 #pragma once
 
 // QCodeEditor
-#include <QStyleSyntaxHighlighter> // Required for inheritance
+#include <internal/QStyleSyntaxHighlighter.hpp> // Required for inheritance
 
 // Qt
 #include <QRegularExpression>

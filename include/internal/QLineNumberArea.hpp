@@ -1,10 +1,11 @@
 #pragma once
 
+// QCodeEditor
+#include <internal/QCodeEditor.hpp>
+
 // Qt
 #include <QWidget> // Required for inheritance
 #include <QMap>
-
-#include <QCodeEditor>
 
 class QSyntaxStyle;
 class QPaintEvent;

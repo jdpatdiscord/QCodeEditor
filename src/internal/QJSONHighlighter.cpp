@@ -1,6 +1,6 @@
 // QCodeEditor
-#include <QJSONHighlighter>
-#include <QSyntaxStyle>
+#include <internal/QJSONHighlighter.hpp>
+#include <internal/QSyntaxStyle.hpp>
 
 QJSONHighlighter::QJSONHighlighter(QTextDocument *document)
     : QStyleSyntaxHighlighter(document), m_highlightRules(), m_keyRegex(R"(("[^\r\n:]+?")\s*:)")
