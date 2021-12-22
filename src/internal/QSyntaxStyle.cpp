@@ -1,6 +1,6 @@
 // QCodeEditor
 #include <QSyntaxStyle>
-#include "QtCompat.hpp"
+#include <internal/QtCompat.hpp>
 
 // Qt
 #include <QDebug>

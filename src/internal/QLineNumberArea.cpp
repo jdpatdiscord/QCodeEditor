@@ -124,7 +124,10 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
                     Q_UNREACHABLE();
                     break;
                 }
-                markerColor.setAlpha(180);
+
+                // Make the marker less dazzling.
+                markerColor.setAlpha(200);
+
                 painter.fillRect(0, top, 7, lineHeight, markerColor);
             }
 

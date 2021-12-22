@@ -490,6 +490,8 @@ void QCodeEditor::highlightParenthesis()
 
             auto directionEnum = direction < 0 ? QTextCursor::MoveOperation::Left : QTextCursor::MoveOperation::Right;
 
+            // NOTE font weight is not supported in ExtraSelection.
+            // See https://doc.qt.io/qt-5/qtextedit-extraselection.html#format-var
             selection.format = format;
             selection.cursor = textCursor();
             selection.cursor.clearSelection();
