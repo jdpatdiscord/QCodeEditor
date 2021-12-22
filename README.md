@@ -12,17 +12,11 @@ must not use a resource file with the same name.
 0. Qt 5.
 
 ## Abilities
-1. Auto parentheses.
-1. Different highlight rules.
+1. Highlight matched parentheses.
+1. Different highlight rules: C++, GLSL, JSON, Java, JavaScript, XML, Lua, and Python.
+1. Different completion rules: GLSL, Lua, and Python.
 1. Auto indentation.
 1. Replace tabs with spaces.
-1. GLSL completion rules.
-1. GLSL highlight rules.
-1. C++ highlight rules.
-1. XML highlight rules.
-1. JSON highlight rules.
-1. Java highlight rules.
-1. JavaScript highlight rules.
 1. Frame selection.
 1. Qt Creator styles.
 
@@ -31,6 +25,7 @@ It's a CMake-based library, so it can be used as a submodule (see the example).
 But here are the steps to build it as a static library (for external use for example).
 
 1. Clone the repository: `git clone https://github.com/Megaxela/QCodeEditor`
+1. Initialize Git submodules: `git submodule update --init`
 1. Go into the repository: `cd QCodeEditor`
 1. Create a build folder: `mkdir build`
 1. Go into the build folder: `cd build`
@@ -44,7 +39,7 @@ By default, `QCodeEditor` uses the standard QtCreator theme. But you may specify
 your own by parsing it with `QSyntaxStyle`. The example uses [Dracula](https://draculatheme.com) theme.
 (See the example for more.) 
 
-<img src="https://github.com/Megaxela/QCodeEditor/blob/master/example/image/preview.png">
+![demo screenshot](./example/image/preview.png)
 
 ## LICENSE
 
