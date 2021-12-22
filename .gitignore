@@ -10,3 +10,6 @@ QCodeEditor.kdev4
 CMakeCache.txt
 CMakeFiles/
 Makefile
+*_autogen/
+cmake_install.cmake
+compile_commands.json

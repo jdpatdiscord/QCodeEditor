@@ -56,10 +56,11 @@
     <style name="DiffDestLine" foreground="#282a36" background="#50fa7b"/>
     <style name="DiffDestChar" foreground="#282a36" background="#1dc748"/>
     <style name="LogChangeLine" foreground="#ff5555"/>
-    <style name="Warning" underlineColor="#ffb86c" underlineStyle="SingleUnderline"/>
+    <style name="Warning" underlineColor="#ffb86c" underlineStyle="WaveUnderline"/>
     <style name="WarningContext" underlineColor="#ffb86c" underlineStyle="DotLine"/>
-    <style name="Error" underlineColor="#ff5555" underlineStyle="SingleUnderline"/>
+    <style name="Error" underlineColor="#ff5555" underlineStyle="WaveUnderline"/>
     <style name="ErrorContext" underlineColor="#ff5555" underlineStyle="DotLine"/>
+    <style name="Information" underlineColor="#ffb86c" underlineStyle="DotLine"/>
     <style name="Declaration" bold="true"/>
     <style name="FunctionDefinition"/>
     <style name="OutputArgument" italic="true"/>

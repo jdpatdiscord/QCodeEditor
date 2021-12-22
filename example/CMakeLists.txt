@@ -12,7 +12,9 @@ add_executable(QCodeEditorExample
     resources/demo_resources.qrc
     src/main.cpp
     src/MainWindow.cpp
+    src/DiagnosticListItem.cpp
     include/MainWindow.hpp
+    include/DiagnosticListItem.hpp
 )
 
 target_include_directories(QCodeEditorExample PUBLIC

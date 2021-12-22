@@ -115,7 +115,7 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
                     markerColor = m_syntaxStyle->getFormat("Warning").underlineColor();
                     break;
                 case QCodeEditor::DiagnosticSeverity::Information:
-                    markerColor = m_syntaxStyle->getFormat("Warning").underlineColor();
+                    markerColor = m_syntaxStyle->getFormat("Information").underlineColor();
                     break;
                 case QCodeEditor::DiagnosticSeverity::Hint:
                     markerColor = m_syntaxStyle->getFormat("Text").foreground().color();
@@ -124,6 +124,7 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
                     Q_UNREACHABLE();
                     break;
                 }
+                markerColor.setAlpha(180);
                 painter.fillRect(0, top, 7, lineHeight, markerColor);
             }
 

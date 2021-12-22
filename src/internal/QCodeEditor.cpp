@@ -1036,8 +1036,8 @@ void QCodeEditor::addDiagnostic(DiagnosticSeverity severity, const Span &span, c
         charfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Warning").underlineStyle());
         break;
     case DiagnosticSeverity::Information:
-        charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Warning").underlineColor());
-        charfmt.setUnderlineStyle(QTextCharFormat::DotLine);
+        charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Information").underlineColor());
+        charfmt.setUnderlineStyle(m_syntaxStyle->getFormat("Information").underlineStyle());
         break;
     case DiagnosticSeverity::Hint:
         charfmt.setUnderlineColor(m_syntaxStyle->getFormat("Text").foreground().color());
@@ -1051,13 +1051,15 @@ void QCodeEditor::addDiagnostic(DiagnosticSeverity severity, const Span &span, c
     auto startLine = cursor.blockNumber();
     cursor.setPosition(span.end);
     auto endLine = cursor.blockNumber();
-    m_lineNumberArea->addDiagnosticMarker(severity, startLine, endLine);
+    m_lineNumberArea->addDiagnosticMarker(severity, startLine, endLine + 1);
 }
 
 void QCodeEditor::clearDiagnostics()
 {
     if (m_diagnostics.empty())
         return;
+
+    m_diagnostics.clear();
 
     QTextCharFormat charfmt;
     charfmt.setUnderlineStyle(QTextCharFormat::NoUnderline);
