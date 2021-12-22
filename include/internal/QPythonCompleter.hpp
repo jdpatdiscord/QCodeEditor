@@ -5,7 +5,7 @@
 
 /**
  * @brief Class, that describes completer with
- * glsl specific types and functions.
+ * Python specific types and functions.
  */
 class QPythonCompleter : public QCompleter
 {

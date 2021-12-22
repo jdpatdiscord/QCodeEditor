@@ -6,7 +6,7 @@
 
 struct QHighlightRule
 {
-    QHighlightRule()
+    QHighlightRule() : pattern(), formatName()
     {
     }
 

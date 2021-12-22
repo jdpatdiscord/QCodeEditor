@@ -8,7 +8,7 @@
 
 struct QHighlightBlockRule
 {
-    QHighlightBlockRule()
+    QHighlightBlockRule() : startPattern(), endPattern(), formatName()
     {
     }
 

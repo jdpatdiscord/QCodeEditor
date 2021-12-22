@@ -7,8 +7,8 @@
 #include <QFile>
 
 QJavaHighlighter::QJavaHighlighter(QTextDocument *document)
-    : QStyleSyntaxHighlighter(document), m_highlightRules(), m_commentStartPattern(QRegularExpression(R"(/\*)")),
-      m_commentEndPattern(QRegularExpression(R"(\*/)"))
+    : QStyleSyntaxHighlighter(document), m_highlightRules(), m_commentStartPattern(R"(/\*)"),
+      m_commentEndPattern(R"(\*/)")
 {
     Q_INIT_RESOURCE(qcodeeditor_resources);
 
