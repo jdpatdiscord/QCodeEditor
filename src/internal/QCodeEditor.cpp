@@ -986,7 +986,7 @@ bool QCodeEditor::event(QEvent *event)
             // NOTE <nobr> does not work in QToolTip. See
             // https://doc.qt.io/qt-5/qtooltip.html#details
             text += "<p style=\"margin: 0; white-space:pre\">";
-            text += diag.message;
+            text += diag.message.toHtmlEscaped();
             if (!diag.code.isEmpty())
             {
                 text += "  <font color=\"";
@@ -1006,7 +1006,7 @@ bool QCodeEditor::event(QEvent *event)
                     break;
                 }
                 text += "\"><small>";
-                text += diag.code;
+                text += diag.code.toHtmlEscaped();
                 text += "</small></font>";
             }
             text += "</p>";
