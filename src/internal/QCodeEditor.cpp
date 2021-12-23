@@ -577,26 +577,22 @@ int QCodeEditor::getFirstVisibleBlock()
     // Costly way of doing but since "blockBoundingGeometry(...)" doesn't
     // exists for "QTextEdit"...
 
+    auto r1 = viewport()->geometry();
+    auto blockTransX = r1.x();
+    auto blockTransY = r1.y() - verticalScrollBar()->sliderPosition();
     QTextCursor curs = QTextCursor(document());
     curs.movePosition(QTextCursor::Start);
-    for (int i = 0; i < document()->blockCount(); ++i)
+    auto i = 0;
+    for (auto block = document()->begin(); block.isValid(); block = block.next())
     {
-        QTextBlock block = curs.block();
-
-        QRect r1 = viewport()->geometry();
-        QRect r2 = document()
-                       ->documentLayout()
-                       ->blockBoundingRect(block)
-                       .translated(viewport()->geometry().x(),
-                                   viewport()->geometry().y() - verticalScrollBar()->sliderPosition())
-                       .toRect();
+        auto r2 = document()->documentLayout()->blockBoundingRect(block).translated(blockTransX, blockTransY).toRect();
 
         if (r1.intersects(r2))
         {
             return i;
         }
 
-        curs.movePosition(QTextCursor::NextBlock);
+        i++;
     }
 
     return 0;

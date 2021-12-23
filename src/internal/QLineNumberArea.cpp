@@ -72,8 +72,17 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
 
+    auto dirtyRect = event->rect();
+
     // Clearing rect to update
-    painter.fillRect(event->rect(), m_syntaxStyle->getFormat("LineNumber").background().color());
+    painter.fillRect(dirtyRect, m_syntaxStyle->getFormat("LineNumber").background().color());
+    auto viewportBottom = m_codeEditParent->viewport()->geometry().bottom();
+    if (viewportBottom < dirtyRect.bottom())
+    {
+        auto r = dirtyRect;
+        r.setBottom(viewportBottom);
+        painter.setClipRegion(r);
+    }
 
     auto blockNumber = m_codeEditParent->getFirstVisibleBlock();
     auto block = m_codeEditParent->document()->findBlockByNumber(blockNumber);
@@ -96,12 +105,14 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
 
     auto lineWidth = width();
     auto lineHeight = m_codeEditParent->fontMetrics().height();
+    auto dirtyTop = dirtyRect.top();
+    auto dirtyBottom = dirtyRect.bottom();
 
-    while (block.isValid() && top <= event->rect().bottom())
+    while (block.isValid() && top <= dirtyBottom)
     {
-        if (block.isVisible() && bottom >= event->rect().top())
+        if (block.isVisible() && bottom >= dirtyTop)
         {
-            QString number = QString::number(blockNumber + 1);
+            auto number = QString::number(blockNumber + 1);
 
             if (m_diagnosticMarkers.contains(blockNumber))
             {
