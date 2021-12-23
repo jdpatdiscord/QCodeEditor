@@ -978,13 +978,38 @@ bool QCodeEditor::event(QEvent *event)
 
         QString text;
         m_diagSpans.overlap_find_all({pos, pos}, [&text, this](auto it) {
-            if (text.isEmpty())
+            const auto &diag = m_diagnostics[it->interval().diagIndex];
+            if (!text.isEmpty())
             {
-                text = m_diagnostics[it->interval().diagIndex].message;
-            } else {
-                text += "; ";
-                text += m_diagnostics[it->interval().diagIndex].message;
+                text += "<hr>";
             }
+            // NOTE <nobr> does not work in QToolTip. See
+            // https://doc.qt.io/qt-5/qtooltip.html#details
+            text += "<p style=\"margin: 0; white-space:pre\">";
+            text += diag.message;
+            if (!diag.code.isEmpty())
+            {
+                text += "  <font color=\"";
+                switch (diag.severity)
+                {
+                case DiagnosticSeverity::Hint:
+                    text += m_syntaxStyle->getFormat("Text").foreground().color().name();
+                    break;
+                case DiagnosticSeverity::Information:
+                    text += m_syntaxStyle->getFormat("Information").underlineColor().name();
+                    break;
+                case DiagnosticSeverity::Warning:
+                    text += m_syntaxStyle->getFormat("Warning").underlineColor().name();
+                    break;
+                case DiagnosticSeverity::Error:
+                    text += m_syntaxStyle->getFormat("Error").underlineColor().name();
+                    break;
+                }
+                text += "\"><small>";
+                text += diag.code;
+                text += "</small></font>";
+            }
+            text += "</p>";
             return true;
         });
 

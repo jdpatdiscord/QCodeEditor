@@ -54,6 +54,26 @@ class QCodeEditor : public QTextEdit
         int end;
     };
 
+    struct Diagnostic
+    {
+        Diagnostic() = default;
+
+        /**
+         * @param start inclusive
+         * @param end exclusive
+         * @param code optional
+         */
+        Diagnostic(DiagnosticSeverity severity, const Span &span, const QString &message, const QString &code = "")
+            : severity(severity), span(span), message(message), code(code)
+        {
+        }
+
+        DiagnosticSeverity severity;
+        Span span;
+        QString message;
+        QString code;
+    };
+
     struct Parenthesis
     {
         QChar left, right;
@@ -395,26 +415,6 @@ class QCodeEditor : public QTextEdit
      * @param str string to add
      */
     void addInEachLineOfSelection(const QRegularExpression &regex, const QString &str);
-
-    struct Diagnostic
-    {
-        Diagnostic() = default;
-
-        /**
-         * @param start inclusive
-         * @param end exclusive
-         * @param code optional
-         */
-        Diagnostic(DiagnosticSeverity severity, const Span &span, const QString &message, const QString &code = "")
-            : severity(severity), span(span), message(message), code(code)
-        {
-        }
-
-        DiagnosticSeverity severity;
-        Span span;
-        QString message;
-        QString code;
-    };
 
     struct InternalSpan
     {
