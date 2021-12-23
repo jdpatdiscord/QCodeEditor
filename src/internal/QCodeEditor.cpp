@@ -54,7 +54,10 @@ void QCodeEditor::initFont()
 
 void QCodeEditor::performConnections()
 {
-    connect(document(), &QTextDocument::blockCountChanged, this, &QCodeEditor::updateLineNumberAreaWidth);
+    connect(document(), &QTextDocument::blockCountChanged, this, [this]() {
+        m_lineNumberArea->updateEditorLineCount();
+        updateLineNumberMarginWidth();
+    });
     connect(document(), &QTextDocument::blockCountChanged, this, &QCodeEditor::updateBottomMargin);
 
     connect(verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int) { m_lineNumberArea->update(); });
@@ -130,7 +133,7 @@ void QCodeEditor::resizeEvent(QResizeEvent *e)
 {
     QTextEdit::resizeEvent(e);
 
-    updateLineGeometry();
+    updateLineNumberAreaGeometry();
     updateBottomMargin();
 }
 
@@ -161,17 +164,18 @@ void QCodeEditor::wheelEvent(QWheelEvent *e)
             QFont newFont = font();
             newFont.setPointSize(newSize);
             setFont(newFont);
-            Q_EMIT fontChanged(newFont);
+            emit fontChanged(newFont);
         }
     }
     else
         QTextEdit::wheelEvent(e);
 }
 
-void QCodeEditor::updateLineGeometry()
+void QCodeEditor::updateLineNumberAreaGeometry()
 {
-    QRect cr = contentsRect();
-    m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), m_lineNumberArea->sizeHint().width(), cr.height()));
+    auto cr = contentsRect();
+    cr.setWidth(m_lineNumberArea->width());
+    m_lineNumberArea->setGeometry(cr);
 }
 
 void QCodeEditor::updateBottomMargin()
@@ -194,19 +198,19 @@ void QCodeEditor::updateBottomMargin()
     }
 }
 
-void QCodeEditor::updateLineNumberAreaWidth(int)
+void QCodeEditor::updateLineNumberMarginWidth()
 {
-    setViewportMargins(m_lineNumberArea->sizeHint().width(), 0, 0, 0);
+    setViewportMargins(m_lineNumberArea->width(), 0, 0, 0);
 }
 
-void QCodeEditor::updateLineNumberArea(QRect rect)
+void QCodeEditor::updateLineNumberArea(const QRect &rect)
 {
-    m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->sizeHint().width(), rect.height());
-    updateLineGeometry();
+    m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(), rect.height());
+    updateLineNumberAreaGeometry();
 
     if (rect.contains(viewport()->rect()))
     {
-        updateLineNumberAreaWidth(0);
+        updateLineNumberMarginWidth();
     }
 }
 
@@ -224,7 +228,7 @@ void QCodeEditor::updateWordOccurrenceHighlights()
 {
     m_wordOccurHilits.clear();
 
-    highlightOccurrences();
+    highlightWordOccurrences();
 
     setExtraSelections(m_parenAndCurLineHilits + m_wordOccurHilits);
 }
@@ -498,9 +502,7 @@ void QCodeEditor::highlightParenthesis()
             selection.format = format;
             selection.cursor = textCursor();
             selection.cursor.clearSelection();
-            selection.cursor.movePosition(directionEnum, QTextCursor::MoveMode::MoveAnchor,
-                                          qAbs(textCursor().position() - position));
-
+            selection.cursor.setPosition(position);
             selection.cursor.movePosition(QTextCursor::MoveOperation::Right, QTextCursor::MoveMode::KeepAnchor, 1);
 
             m_parenAndCurLineHilits.append(selection);
@@ -532,29 +534,30 @@ void QCodeEditor::highlightCurrentLine()
     }
 }
 
-void QCodeEditor::highlightOccurrences()
+void QCodeEditor::highlightWordOccurrences()
 {
     static QRegularExpression RE_WORD(
         R"((?:[_a-zA-Z][_a-zA-Z0-9]*)|(?<=\b|\s|^)(?i)(?:(?:(?:(?:(?:\d+(?:'\d+)*)?\.(?:\d+(?:'\d+)*)(?:e[+-]?(?:\d+(?:'\d+)*))?)|(?:(?:\d+(?:'\d+)*)\.(?:e[+-]?(?:\d+(?:'\d+)*))?)|(?:(?:\d+(?:'\d+)*)(?:e[+-]?(?:\d+(?:'\d+)*)))|(?:0x(?:[0-9a-f]+(?:'[0-9a-f]+)*)?\.(?:[0-9a-f]+(?:'[0-9a-f]+)*)(?:p[+-]?(?:\d+(?:'\d+)*)))|(?:0x(?:[0-9a-f]+(?:'[0-9a-f]+)*)\.?(?:p[+-]?(?:\d+(?:'\d+)*))))[lf]?)|(?:(?:(?:[1-9]\d*(?:'\d+)*)|(?:0[0-7]*(?:'[0-7]+)*)|(?:0x[0-9a-f]+(?:'[0-9a-f]+)*)|(?:0b[01]+(?:'[01]+)*))(?:u?l{0,2}|l{0,2}u?)))(?=\b|\s|$))");
 
-    auto cursor = textCursor();
-    if (cursor.hasSelection())
+    auto curCursor = textCursor();
+    if (curCursor.hasSelection())
     {
-        auto text = cursor.selectedText();
+        auto text = curCursor.selectedText();
         if (RE_WORD.match(text).captured() == text)
         {
             auto doc = document();
-            cursor = doc->find(text, 0, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
-            while (!cursor.isNull())
+            auto wordCursor = doc->find(text, 0, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
+            ExtraSelection e;
+            e.format.setBackground(m_syntaxStyle->getFormat("WordOccurrence").background());
+            while (!wordCursor.isNull())
             {
-                if (cursor != textCursor())
+                if (wordCursor != curCursor)
                 {
-                    QTextEdit::ExtraSelection e;
-                    e.cursor = cursor;
-                    e.format.setBackground(m_syntaxStyle->getFormat("Selection").background());
+                    e.cursor = wordCursor;
                     m_wordOccurHilits.push_back(e);
                 }
-                cursor = doc->find(text, cursor, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
+                wordCursor =
+                    doc->find(text, wordCursor, QTextDocument::FindWholeWords | QTextDocument::FindCaseSensitively);
             }
         }
     }
@@ -963,7 +966,7 @@ void QCodeEditor::focusOutEvent(QFocusEvent *e)
     if (m_textChanged)
     {
         m_textChanged = false;
-        Q_EMIT editingFinished();
+        emit editingFinished();
     }
 }
 

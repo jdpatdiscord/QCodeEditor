@@ -3,6 +3,7 @@
     <style name="Text" foreground="#000000" background="#ffffff"/>
     <style name="Link" foreground="#0000ff"/>
     <style name="Selection" foreground="#eff0f1" background="#3daee9"/>
+    <style name="WordOccurrence" background="#aed5ea"/>
     <style name="LineNumber" foreground="#6272a4" background="#f0f2f0"/>
     <style name="SearchResult" background="#ffef0b"/>
     <style name="SearchScope" background="#2d5c76"/>

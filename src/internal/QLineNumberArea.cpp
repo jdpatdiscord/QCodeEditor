@@ -16,11 +16,11 @@ QLineNumberArea::QLineNumberArea(QCodeEditor *parent)
 {
 }
 
-QSize QLineNumberArea::sizeHint() const
+void QLineNumberArea::updateEditorLineCount()
 {
     if (m_codeEditParent == nullptr)
     {
-        return QWidget::sizeHint();
+        return;
     }
 
     const int digits = QString::number(m_codeEditParent->document()->blockCount()).length();
@@ -32,7 +32,7 @@ QSize QLineNumberArea::sizeHint() const
     space = 15 + m_codeEditParent->fontMetrics().width(QLatin1Char('9')) * digits;
 #endif
 
-    return {space, 0};
+    setFixedWidth(space);
 }
 
 void QLineNumberArea::setSyntaxStyle(QSyntaxStyle *style)
@@ -94,7 +94,7 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
     currentLineFont.setItalic(currentLineFormat.fontItalic());
     painter.setFont(font);
 
-    auto lineWidth = sizeHint().width();
+    auto lineWidth = width();
     auto lineHeight = m_codeEditParent->fontMetrics().height();
 
     while (block.isValid() && top <= event->rect().bottom())

@@ -4,12 +4,12 @@
 
 // Qt
 #include <QList>
-#include <QRect>
 #include <QRegularExpression>
 #include <QString>
 #include <QTextEdit> // Required for inheritance
 #include <QVector>
 
+class QRect;
 class QRegularExpression;
 class QKeyEvent;
 class QFocusEvent;
@@ -215,14 +215,14 @@ class QCodeEditor : public QTextEdit
      * internal editor viewport based on line
      * number area width.
      */
-    void updateLineNumberAreaWidth(int);
+    void updateLineNumberMarginWidth();
 
     /**
      * @brief Slot, that performs update of some
      * part of line number area.
      * @param rect Area that has to be updated.
      */
-    void updateLineNumberArea(QRect rect);
+    void updateLineNumberArea(const QRect &rect);
 
     /**
      * @brief Slot, that will proceed extra selection
@@ -358,7 +358,7 @@ class QCodeEditor : public QTextEdit
     /**
      * @brief Method for updating geometry of line number area.
      */
-    void updateLineGeometry();
+    void updateLineNumberAreaGeometry();
 
     /**
      * @brief Method, that performs completer processing.
@@ -395,7 +395,7 @@ class QCodeEditor : public QTextEdit
      */
     void highlightParenthesis();
 
-    void highlightOccurrences();
+    void highlightWordOccurrences();
 
     /**
      * @brief Method for remove the first group of regex
