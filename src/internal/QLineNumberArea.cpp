@@ -84,8 +84,8 @@ void QLineNumberArea::paintEvent(QPaintEvent *event)
         painter.setClipRegion(r);
     }
 
-    auto blockNumber = m_codeEditParent->getFirstVisibleBlock();
-    auto block = m_codeEditParent->document()->findBlockByNumber(blockNumber);
+    auto block = m_codeEditParent->getFirstVisibleBlock();
+    auto blockNumber = block.blockNumber();
     auto top = (int)m_codeEditParent->document()
                    ->documentLayout()
                    ->blockBoundingRect(block)

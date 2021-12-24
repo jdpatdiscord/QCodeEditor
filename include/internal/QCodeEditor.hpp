@@ -100,7 +100,7 @@ class QCodeEditor : public QTextEdit
      * index.
      * @return Index.
      */
-    int getFirstVisibleBlock();
+    QTextBlock getFirstVisibleBlock();
 
     /**
      * @brief Method for setting highlighter.

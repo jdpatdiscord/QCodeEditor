@@ -569,7 +569,7 @@ void QCodeEditor::paintEvent(QPaintEvent *e)
     QTextEdit::paintEvent(e);
 }
 
-int QCodeEditor::getFirstVisibleBlock()
+QTextBlock QCodeEditor::getFirstVisibleBlock()
 {
     // Detect the first block for which bounding rect - once translated
     // in absolute coordinated - is contained by the editor's text area
@@ -582,20 +582,17 @@ int QCodeEditor::getFirstVisibleBlock()
     auto blockTransY = r1.y() - verticalScrollBar()->sliderPosition();
     QTextCursor curs = QTextCursor(document());
     curs.movePosition(QTextCursor::Start);
-    auto i = 0;
     for (auto block = document()->begin(); block.isValid(); block = block.next())
     {
         auto r2 = document()->documentLayout()->blockBoundingRect(block).translated(blockTransX, blockTransY).toRect();
 
         if (r1.intersects(r2))
         {
-            return i;
+            return block;
         }
-
-        i++;
     }
 
-    return 0;
+    return QTextBlock();
 }
 
 bool QCodeEditor::proceedCompleterBegin(QKeyEvent *e)
@@ -735,7 +732,7 @@ void QCodeEditor::keyPressEvent(QKeyEvent *e)
         static QRegularExpression RE_LINE_START_WHITESPACE("^\\s*");
 
         QString indentationSpaces =
-            RE_LINE_START_WHITESPACE.match(document()->findBlockByNumber(textCursor().blockNumber()).text()).captured();
+            RE_LINE_START_WHITESPACE.match(textCursor().block().text()).captured();
 
         // Have Qt Edior like behaviour, if {|} and enter is pressed indent the two
         // parenthesis
