@@ -5,8 +5,8 @@
 #include <internal/QStyleSyntaxHighlighter.hpp> // Required for inheritance
 
 // Qt
-#include <QVector>
 #include <QRegularExpression>
+#include <QVector>
 
 class QString;
 class QTextDocument;

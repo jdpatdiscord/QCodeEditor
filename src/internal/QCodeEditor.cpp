@@ -731,8 +731,7 @@ void QCodeEditor::keyPressEvent(QKeyEvent *e)
 
         static QRegularExpression RE_LINE_START_WHITESPACE("^\\s*");
 
-        QString indentationSpaces =
-            RE_LINE_START_WHITESPACE.match(textCursor().block().text()).captured();
+        QString indentationSpaces = RE_LINE_START_WHITESPACE.match(textCursor().block().text()).captured();
 
         // Have Qt Edior like behaviour, if {|} and enter is pressed indent the two
         // parenthesis

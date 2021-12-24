@@ -49,6 +49,7 @@ class QCodeEditor : public QTextEdit
         /** @brief Start position. Inclusive.
          */
         int start;
+
         /** @brief End position. Exclusive.
          */
         int end;

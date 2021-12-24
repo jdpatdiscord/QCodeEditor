@@ -1,8 +1,8 @@
 #pragma once
 
 // Qt
-#include <QSyntaxHighlighter> // Required for inheritance
 #include <QString>
+#include <QSyntaxHighlighter> // Required for inheritance
 
 class QSyntaxStyle;
 class QTextDocument;

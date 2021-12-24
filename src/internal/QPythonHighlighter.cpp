@@ -8,8 +8,7 @@
 #include <QFile>
 
 QPythonHighlighter::QPythonHighlighter(QTextDocument *document)
-    : QStyleSyntaxHighlighter(document), m_highlightRules(), m_highlightBlockRules(),
-      m_includePattern(R"(import \w+)"),
+    : QStyleSyntaxHighlighter(document), m_highlightRules(), m_highlightBlockRules(), m_includePattern(R"(import \w+)"),
       m_functionPattern(R"(\b([A-Za-z0-9_]+(?:\.))*([A-Za-z0-9_]+)(?=\())"),
       m_defTypePattern(R"(\b([A-Za-z0-9_]+)\s+[A-Za-z]{1}[A-Za-z0-9_]+\s*[;=])")
 {
