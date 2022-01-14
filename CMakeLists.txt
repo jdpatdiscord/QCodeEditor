@@ -105,7 +105,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 target_link_libraries(QCodeEditor
-    Qt5::Core
-    Qt5::Widgets
-    Qt5::Gui
+    ${QT_VERSION}::Core
+    ${QT_VERSION}::Widgets
+    ${QT_VERSION}::Gui
 )
