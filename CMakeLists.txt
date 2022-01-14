@@ -82,7 +82,10 @@ if(NOT QT_VERSION)
 endif()
 find_package(${QT_VERSION} REQUIRED COMPONENTS Core Gui Widgets)
 
-add_library(QCodeEditor STATIC
+if(NOT TYPEOFLIBRARY)
+  set(TYPEOFLIBRARY STATIC)
+endif()
+add_library(QCodeEditor ${TYPEOFLIBRARY}
     ${RESOURCES_FILE}
     ${SOURCE_FILES}
     ${INCLUDE_FILES}
