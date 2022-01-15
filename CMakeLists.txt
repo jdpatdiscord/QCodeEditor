@@ -95,6 +95,11 @@ target_include_directories(QCodeEditor PUBLIC
     include
 )
 
+install(TARGETS QCodeEditor
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/QCodeEditor
+)
+
 if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(QCodeEditor
         PRIVATE
