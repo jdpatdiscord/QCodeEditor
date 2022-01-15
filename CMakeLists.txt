@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.6)
 project(QCodeEditor)
 
-include(GNUInstallDirs)
+set(LIB_VERSION_MAJOR 0)
+set(LIB_VERSION_MINOR 1)
+set(LIB_VERSION_TWEAK 0)
+set(LIB_VERSION ${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_TWEAK})
 
 set(CMAKE_CXX_STANDARD 17)
 
-option(BUILD_EXAMPLE "Example building required" Off)
+include(GNUInstallDirs)
 
+option(BUILD_EXAMPLE "Example building required" Off)
 if (${BUILD_EXAMPLE})
     message(STATUS "QCodeEditor example will be built.")
     add_subdirectory(example)
@@ -92,6 +96,14 @@ add_library(QCodeEditor ${TYPEOFLIBRARY}
     ${SOURCE_FILES}
     ${INCLUDE_FILES}
 )
+
+# Set version of the library
+set_target_properties(QCodeEditor PROPERTIES VERSION ${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_TWEAK})
+
+if (TYPEOFLIBRARY STREQUAL "SHARED")
+	# Create symlink "libtestlib.${LIB_VERSION_MAJOR} ->"
+	set_target_properties(QCodeEditor PROPERTIES SOVERSION ${LIB_VERSION_MAJOR})
+endif()
 
 target_include_directories(QCodeEditor PUBLIC
 	PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
