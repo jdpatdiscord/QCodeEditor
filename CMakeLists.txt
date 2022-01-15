@@ -93,7 +93,7 @@ add_library(QCodeEditor ${TYPEOFLIBRARY}
     ${INCLUDE_FILES}
 )
 
-set_target_properties(QCodeEditor PROPERTIES PUBLIC_HEADER ${INCLUDE_FILES})
+set_target_properties(QCodeEditor PROPERTIES PUBLIC_HEADER "${INCLUDE_FILES}")
 
 target_include_directories(QCodeEditor PUBLIC
 	PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
