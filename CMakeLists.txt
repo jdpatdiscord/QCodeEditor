@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 project(QCodeEditor)
 
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_STANDARD 17)
 
 option(BUILD_EXAMPLE "Example building required" Off)
@@ -92,7 +94,8 @@ add_library(QCodeEditor ${TYPEOFLIBRARY}
 )
 
 target_include_directories(QCodeEditor PUBLIC
-    include
+	PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
+	PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/QCodeEditor>
 )
 
 install(TARGETS QCodeEditor
