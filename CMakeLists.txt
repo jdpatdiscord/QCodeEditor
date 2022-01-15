@@ -97,11 +97,10 @@ add_library(QCodeEditor ${TYPEOFLIBRARY}
     ${INCLUDE_FILES}
 )
 
-# Set version of the library
-set_target_properties(QCodeEditor PROPERTIES VERSION ${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_TWEAK})
-
 if (TYPEOFLIBRARY STREQUAL "SHARED")
-	# Create symlink "libtestlib.${LIB_VERSION_MAJOR} ->"
+	# Set version of the library
+	set_target_properties(QCodeEditor PROPERTIES VERSION ${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_TWEAK})
+	# Create symlink "libQCodeEditor.${LIB_VERSION_MAJOR} ->"
 	set_target_properties(QCodeEditor PROPERTIES SOVERSION ${LIB_VERSION_MAJOR})
 endif()
 
@@ -110,7 +109,7 @@ target_include_directories(QCodeEditor PUBLIC
 	PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/QCodeEditor>
 )
 
-install(TARGETS QCodeEditor
+install(TARGETS QCodeEditor EXPORT QCodeEditorTarget
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/QCodeEditor
 )
@@ -136,3 +135,34 @@ target_link_libraries(QCodeEditor
     ${QT_VERSION}::Widgets
     ${QT_VERSION}::Gui
 )
+
+# Install files to use "find_package(QCodeEditor )"
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/QCodeEditor)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/QCodeEditorConfigVersion.cmake
+    VERSION ${LIB_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/QCodeEditorConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/QCodeEditorConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+install(
+	FILES
+		${CMAKE_CURRENT_BINARY_DIR}/QCodeEditorConfig.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/QCodeEditorConfigVersion.cmake
+	DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+install(EXPORT QCodeEditorTarget
+	FILE QCodeEditorTargets.cmake
+	NAMESPACE QCodeEditor::
+	DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+add_library(QCodeEditor::QCodeEditor ALIAS QCodeEditor)
